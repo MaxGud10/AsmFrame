@@ -408,25 +408,34 @@ num_len proc
         push cx
         push dx
 ;-------------------BODY---------------------
+
         mov bx, si
-@@num_len_loop:		                 ; while ([ax] >= '0' && [ax] <= '9')
+@@do_while:		                     ; while([ax] >= '0' && [ax] <= '9' || [ax] >= 'a' && [ax] <= 'f')
         
         inc bx  
 
         xor dx, dx                   ; dx = 0
         mov al, [bx]            
-        @@check_digit: 
-                cmp al, '0'          ; сравниваем  al с символом '0'
-                jb @@num_len_end     ; if al < '0' -> num_len_end
-                cmp al, '9'          ; сравниваем al c '9'
-                ja @@num_len_end     ; if al > '9' -> num_len_end
-        @@is_digit:  
+        @@begin_if1: 
+                cmp al, '0'          ; сравниваем al с символом '0'
+                jb @@end_if1         ; if al < '0' -> end_if1
+                cmp al, '9'          ; сравниваем al с символом '9'
+                ja @@end_if1         ; if al > '9' -> end_if1
+        @@do_if1:  
                 mov dx, 1            ; записали 1 в dx => мы нашли цифру 
-        @@num_len_end:         
-                cmp dx, 1            ; проверяем была ли найдена цифра () 
-                je @@num_len_loop		
-                sub bx, si           ; ax = bx - si - длина строки состоящую из цифр 
-                mov ax, bx           ; окончательная длина в ax
+        @@end_if1:
+        @@begin_if2: 
+                cmp al, 'a'          ; сравниваем al с символом 'a'
+                jb @@end_if2         ; if al < 'a' -> end_if2
+                cmp al, 'f'          ; сравниваем al с символом 'f'
+                ja @@end_if2         ; if al > 'f' -> end_if2
+        @@do_if2:  
+                mov dx, 1            ; записали 1 в dx => мы нашли шестнадцатеричную цифру
+        @@end_if2:         
+        cmp dx, 1                    ; проверяем, была ли найдена цифра
+        je @@do_while		         ; если да, продолжаем цикл
+        sub bx, si                   ; ax = bx - si - длина строки состоящую из цифр 
+        mov ax, bx                   ; окончательная длина в ax
 ;---------------------------------------------
 
         pop dx                       ; восстанавливаем регистры
@@ -435,7 +444,6 @@ num_len proc
         
         ret
 num_len endp
-
 ;====================================================================
 ; atoh
 ; Function to process hex number from str
