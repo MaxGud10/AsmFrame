@@ -1,8 +1,13 @@
 
 .model tiny
+.186
 .code
 org 100h
 locals @@
+; отрисовать резидентную рамку
+; добавить отрисовку регистров 
+; добавить включение\откл отрисовки 
+; 
 
 ;====================================================================
 ;                                 DEFINE
@@ -11,15 +16,16 @@ video_memory_segment equ 0b800h ; сегмент видеопамяти
 command_line_ptr     equ 0080h  ; указатель на командную строку
 end_of_string        equ 0024h  ; символ конца строки '$'
 ascii_zero           equ 0030h  ; символ '0'
+frame_color          equ 047h   ; цвет рамки по умолчанию
 ascii_w_hex          equ 0057h  ; символ 'w' в шестнадцатеричном формате
 exit_code            equ 4c00h  ; код завершения программы
-frame_style_size     equ 9d     ; размер стиля рамки
-frame_color          equ 047h   ; цвет рамки по умолчанию
 shadow_color         equ 070h   ; цвет тени
+frame_style_size     equ 9d     ; размер стиля рамки
+
+
 
 ;--------------------------------------------------------------------
 start:	jmp main
-
 
 main    proc
         nop
@@ -67,11 +73,11 @@ main    proc
         
         call skip_spaces
         ; начинаем рисовать рамку! draw_frame(длина, ширина, цвет, стиль, строка)
-        push [bp-4]
-        push [bp-6]
-        push [bp-8]
+        push [bp-4 ] 
+        push [bp-6 ]
+        push [bp-8 ]
         push [bp-10]
-        push si
+        push si 
         call draw_frame
         
         ; завершение программы
@@ -218,7 +224,7 @@ draw_frame      proc
         @@write_text_loop:               ; while ((*ptr != end_char) && (размер < площадь)) { пишем }
                 cmp al, byte ptr [si]    ; сравниваем символ конца строки с текущим символом текста по адрессу si
                 je  @@write_text_end     ; if al == si -> write_text_end
-                cmp dx, [bp-2]           ; сравнивает значение счетчика площади в dx  с площадью для текста 
+                cmp dx, [bp-2]           ; сравнивает значение счетчика площади в dx с площадью для текста 
                 jae @@write_text_end     ; если площадь заполнена то переходим к метке 
 
         @@check_line_end:
@@ -335,8 +341,8 @@ skip_spaces	   proc
 @@skip_end:
 ;---------------------------------------------
                 pop ax
-	        ret
-skip_spaces	endp
+	            ret
+skip_spaces	    endp
 
 
 
@@ -444,6 +450,7 @@ num_len proc
         
         ret
 num_len endp
+
 ;====================================================================
 ; atoh
 ; Function to process hex number from str
@@ -519,11 +526,6 @@ style_frame     db 0C9h, 0CDh, 0BBh, 0BAh, 020h, 0BAh, 0C8h, 0CDh, 0BCh   ; Стил
                 db 0B0h, 0B1h, 0B2h, 0B1h, 020h, 0B1h, 0B2h, 0B1h, 0B0h   ; Стиль 7 (затенённые блоки)
                 db 0FCh, 0CDh, 0FBh, 0BAh, 020h, 0BAh, 0FCh, 0CDh, 0FBh   ; Стиль 8 (особые символы)
                 db 0A6h, 0A7h, 0A6h, 0A7h, 020h, 0A7h, 0A6h, 0A7h, 0A6h   ; Стиль 9 (декоративные)
-
-; style_frame     db 0c9h, 0cdh, 0bbh, 0bah, 020h, 0bah, 0c8h, 0cdh, 0bch
-;                 db 0dah, 0c4h, 0bfh, 0b3h, 020h, 0b3h, 0c0h, 0c4h, 0d9h
-;                 db 0dch, 0dch, 0dch, 0ddh, 020h, 0deh, 0dfh, 0dfh, 0dfh
-;                 db 03h,  03h,  03h,  03h,  020h, 03h,  03h,  03h,  03h
 
 ;-------------------------------------------------------------------
 end Start
